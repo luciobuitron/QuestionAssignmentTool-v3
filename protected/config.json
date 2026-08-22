@@ -1,7 +1,7 @@
 {
     "application": {
         "name": "Question Assignment Tool",
-        "version": "2.0",
+        "version": "1.0",
         "author": "Ing. Lucio M. Buitron Pareja"
     },
 
@@ -9,7 +9,7 @@
         "width": 1100,
         "height": 850,
         "min_width": 1100,
-        "min_height": 880,
+        "min_height": 850,
         "resizable": true
     },
 

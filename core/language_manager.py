@@ -1,5 +1,6 @@
 import json
-import os
+
+from core.path_utils import resource_path
 
 
 class LanguageManager:
@@ -11,9 +12,8 @@ class LanguageManager:
 
     def load_language(self, language_code):
 
-        file_path = os.path.join(
-            "languages",
-            f"{language_code}.json"
+        file_path = resource_path(
+            f"languages/{language_code}.json"
         )
 
         with open(file_path, "r", encoding="utf-8") as file:

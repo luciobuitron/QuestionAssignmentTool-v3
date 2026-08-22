@@ -7,7 +7,7 @@
     "year": "Year",
     "course_language": "Course Language",
     "student_list": "Students List",
-    "question_bank": "Theoretical Questions",
+    "question_bank": "Questions Bank",
     "generate_excel": "GENERATE EXCEL",
     "messages": "Messages",
     "exit": "EXIT",
@@ -32,7 +32,5 @@
     "warning_title": "Warning",
     "no_students_found": "No students were found.",
     "no_questions_found": "No questions were found.",
-    "not_enough_questions": "There are not enough questions for the selected number of students.",
-    "practice_questions": "Practice Questions",
-    "grade_note": "CLARIFICATION: The grade shown is a reference based solely on the student's answers to the questions. The final grade will be affected by the quality of the student's defense and presentation, which are an integral part of the overall assessment."
+    "not_enough_questions": "There are not enough questions for the selected number of students."
 }

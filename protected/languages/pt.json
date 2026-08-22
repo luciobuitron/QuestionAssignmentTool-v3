@@ -7,7 +7,7 @@
     "year": "Ano",
     "course_language": "Idioma do curso",
     "student_list": "Lista de estudantes",
-    "question_bank": "Questões Teóricas",
+    "question_bank": "Banco de questões",
     "generate_excel": "GERAR EXCEL",
     "messages": "Mensagens",
     "exit": "SAIR",
@@ -32,7 +32,5 @@
     "warning_title": "Aviso",
     "no_students_found": "Nenhum estudante foi encontrado.",
     "no_questions_found": "Nenhuma pergunta foi encontrada.",
-    "not_enough_questions": "Não há perguntas suficientes para a quantidade de estudantes selecionada.",
-    "practice_questions": "Perguntas Práticas",
-    "grade_note": "ACLARAÇAO: A nota apresentada é referencial e baseia-se exclusivamente nas respostas registradas do estudante. A nota final será afetada pela qualidade da defesa e apresentação realizada pelo estudante, que são parte integrante da avaliação geral."
+    "not_enough_questions": "Não há perguntas suficientes para a quantidade de estudantes selecionada."
 }

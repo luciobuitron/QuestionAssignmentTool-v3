@@ -1,19 +1,13 @@
-import random
 import json
 import os
 import customtkinter as ctk
 import tkinter as tk
 
 from core.language_manager import LanguageManager
-from openpyxl import Workbook
-from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.styles import Font
-from openpyxl.styles import PatternFill
-from openpyxl.styles import Alignment
-from openpyxl.styles import Border
-from openpyxl.styles import Side
-from datetime import datetime
+from core.excel_generator import ExcelGenerator
+from core.assignment_manager import AssignmentManager
 from tkinter import messagebox
+from core.path_utils import resource_path
 
 
 class MainWindow(ctk.CTk):
@@ -59,7 +53,7 @@ class MainWindow(ctk.CTk):
 
     def load_configuration(self):
 
-        with open("config.json", "r", encoding="utf-8") as file:
+        with open(resource_path("config.json"), "r", encoding="utf-8") as file:
             self.config_data = json.load(file)
 
     def configure_window(self):
@@ -256,7 +250,7 @@ class MainWindow(ctk.CTk):
 
         self.txt_students = ctk.CTkTextbox(
             self.main_frame,
-            height=180
+            height=150
         )
 
         self.txt_students.grid(
@@ -285,11 +279,40 @@ class MainWindow(ctk.CTk):
 
         self.txt_questions = ctk.CTkTextbox(
             self.main_frame,
-            height=180
+            height=100
         )
 
         self.txt_questions.grid(
             row=8,
+            column=0,
+            columnspan=5,
+            sticky="nsew"
+        )
+
+        # =====================================================
+        # Practice Questions
+        # =====================================================
+
+        self.lbl_practice_questions = ctk.CTkLabel(
+            self.main_frame,
+            text=self.language.get("practice_questions")
+        )
+
+        self.lbl_practice_questions.grid(
+            row=9,
+            column=0,
+            columnspan=5,
+            sticky="w",
+            pady=(25, 5)
+        )
+
+        self.txt_practice_questions = ctk.CTkTextbox(
+            self.main_frame,
+            height=100
+        )
+
+        self.txt_practice_questions.grid(
+            row=10,
             column=0,
             columnspan=5,
             sticky="nsew"
@@ -306,7 +329,7 @@ class MainWindow(ctk.CTk):
         )
 
         self.btn_generate.grid(
-            row=9,
+            row=11,
             column=0,
             columnspan=5,
             pady=25
@@ -324,7 +347,7 @@ class MainWindow(ctk.CTk):
         )
 
         self.btn_exit.grid(
-            row=12,
+            row=14,
             column=0,
             columnspan=5,
             pady=(0, 10)
@@ -344,6 +367,12 @@ class MainWindow(ctk.CTk):
         questions = [
             question.strip()
             for question in self.txt_questions.get("1.0", "end").splitlines()
+            if question.strip()
+        ]
+
+        practice_questions = [
+            question.strip()
+            for question in self.txt_practice_questions.get("1.0", "end").splitlines()
             if question.strip()
         ]
 
@@ -372,181 +401,26 @@ class MainWindow(ctk.CTk):
             )
             return
 
-        available_questions = questions.copy()
-        random.shuffle(available_questions)
+        assignment_manager = AssignmentManager()
 
-        assignments = {}
-
-        for student in students:
-
-            assigned_questions = []
-
-            for _ in range(questions_per_student):
-                assigned_questions.append(available_questions.pop())
-
-            assignments[student] = assigned_questions
-
-        for student, assigned_questions in assignments.items():
-
-            print(student)
-
-            for question in assigned_questions:
-                print(f"  - {question}")
-
-        workbook = Workbook()
-
-        workbook.properties.creator = "Ing. Lucio Buitrón"
-        workbook.properties.lastModifiedBy = "Ing. Lucio Buitrón"
-        workbook.properties.title = "Question Assignment Tool"
-        workbook.properties.subject = "Question Assignment"
-        workbook.properties.description = (
-            "Assignment file generated with Question Assignment Tool v1.0"
-        )
-        workbook.properties.keywords = (
-            "Question Assignment, Education, Assessment, Excel"
-        )
-        workbook.properties.category = "Education"
-
-        worksheet = workbook.active
-        worksheet.title = "Assignments"
-
-        worksheet.append([
-            "#",
-            "Student",
-            "Question",
-            "Grade",
-            "Comment"
-        ])
-
-        header_fill = PatternFill(
-            fill_type="solid",
-            start_color="1F4E78"
+        assignments = assignment_manager.assign_questions(
+            students=students,
+            questions=questions,
+            questions_per_student=questions_per_student
         )
 
-        light_blue_fill = PatternFill(
-            fill_type="solid",
-            start_color="EAF4FF"
+        excel_generator = ExcelGenerator(self.language)
+
+        filepath = excel_generator.generate(
+            students=students,
+            assignments=assignments,
+            practice_questions=practice_questions,
+            questions_per_student=questions_per_student,
+            course=self.cmb_course.get(),
+            module=self.cmb_module.get(),
+            term=self.cmb_term.get(),
+            course_language=self.cmb_course_language.get()
         )
-
-        header_font = Font(
-            bold=True,
-            color="FFFFFF"
-        )
-
-        header_alignment = Alignment(
-            horizontal="center",
-            vertical="center"
-        )
-
-        thin_border = Border(
-            left=Side(style="thin"),
-            right=Side(style="thin"),
-            top=Side(style="thin"),
-            bottom=Side(style="thin")
-        )
-
-        center_alignment = Alignment(
-            horizontal="center",
-            vertical="center"
-        )
-
-        left_alignment = Alignment(
-            horizontal="left",
-            vertical="center",
-            wrap_text=True
-        )
-
-        for row in range(2, worksheet.max_row + 1):
-
-            worksheet.cell(row=row, column=1).alignment = center_alignment
-            worksheet.cell(row=row, column=2).alignment = left_alignment
-            worksheet.cell(row=row, column=3).alignment = left_alignment
-            worksheet.cell(row=row, column=4).alignment = center_alignment
-            worksheet.cell(row=row, column=5).alignment = left_alignment
-
-        for row in worksheet.iter_rows():
-            for cell in row:
-                cell.border = thin_border
-
-        for cell in worksheet[1]:
-            cell.fill = header_fill
-            cell.font = header_font
-            cell.alignment = header_alignment
-
-        grade_validation = DataValidation(
-            type="list",
-            formula1='"Not Graded,Excellent,Good,Fair,Poor"',
-            allow_blank=True
-        )
-
-        worksheet.add_data_validation(grade_validation)
-
-        row = 2
-        student_number = 1
-
-        for student, assigned_questions in assignments.items():
-
-            start_row = row
-
-            for question in assigned_questions:
-
-                worksheet.cell(row=row, column=3).value = question
-                worksheet.cell(row=row, column=4).value = ""
-                grade_validation.add(
-                    worksheet.cell(row=row, column=4)
-                )
-                worksheet.cell(row=row, column=5).value = ""
-                row += 1
-
-            end_row = row - 1
-
-            worksheet.cell(row=start_row, column=1).value = student_number
-            worksheet.cell(row=start_row, column=2).value = student
-
-            if end_row > start_row:
-                worksheet.merge_cells(
-                    start_row=start_row,
-                    start_column=1,
-                    end_row=end_row,
-                    end_column=1
-                )
-
-                worksheet.merge_cells(
-                    start_row=start_row,
-                    start_column=2,
-                    end_row=end_row,
-                    end_column=2
-                )
-
-                if student_number % 2 == 1:
-                    for r in range(start_row, end_row + 1):
-                        for c in range(1, 6):   # Columnas A-E
-                            worksheet.cell(row=r, column=c).fill = light_blue_fill
-
-            student_number += 1
-
-        worksheet.column_dimensions["A"].width = 5
-        worksheet.column_dimensions["B"].width = 30
-        worksheet.column_dimensions["C"].width = 140
-        worksheet.column_dimensions["D"].width = 18
-        worksheet.column_dimensions["E"].width = 40
-
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        course = self.cmb_course.get().replace(" ", "")
-        filename = (
-            f"{course}_"
-            f"{self.cmb_module.get()}_"
-            f"Term{self.cmb_term.get()}_"
-            f"{self.cmb_course_language.get()}_"
-            f"{timestamp}.xlsx"
-        )
-
-        output_folder = "output"
-        os.makedirs(output_folder, exist_ok=True)
-        filepath = os.path.join(output_folder, filename)
-        filepath = os.path.abspath(filepath)
-
-        workbook.save(filepath)
 
         students_count = len(students)
         questions_used = students_count * questions_per_student
@@ -555,7 +429,7 @@ class MainWindow(ctk.CTk):
             self.language.get("success_title"),
             f"{self.language.get('success_message')}\n\n"
             f"{self.language.get('file')}:\n"
-            f"{filename}\n\n"
+            f"{os.path.basename(filepath)}\n\n"
             f"{self.language.get('location')}:\n"
             f"{filepath}\n\n"
             f"{self.language.get('summary')}\n"
@@ -576,29 +450,48 @@ class MainWindow(ctk.CTk):
 
         self.language.load_language(language_code)
 
+        self.update_ui_language()
+    
+    def update_ui_language(self):
+
         self.title(
             f'{self.language.get("title")} v{self.config_data["application"]["version"]}'
         )
 
         self.lbl_title.configure(text=self.language.get("title"))
-        self.lbl_application_language.configure(text=self.language.get("application_language"))
+        self.lbl_application_language.configure(
+            text=self.language.get("application_language")
+        )
         self.lbl_course.configure(text=self.language.get("course"))
         self.lbl_module.configure(text=self.language.get("module"))
         self.lbl_term.configure(text=self.language.get("term"))
         self.lbl_year.configure(text=self.language.get("year"))
-        self.lbl_course_language.configure(text=self.language.get("course_language"))
-        self.lbl_students.configure(text=self.language.get("student_list"))
-        self.lbl_questions.configure(text=self.language.get("question_bank"))
-        self.btn_generate.configure(text=self.language.get("generate_excel"))
-        self.btn_exit.configure(text=self.language.get("exit"))
+        self.lbl_course_language.configure(
+            text=self.language.get("course_language")
+        )
+        self.lbl_students.configure(
+            text=self.language.get("student_list")
+        )
+        self.lbl_questions.configure(
+            text=self.language.get("question_bank")
+        )
+        self.lbl_practice_questions.configure(
+            text=self.language.get("practice_questions")
+        )
+        self.btn_generate.configure(
+            text=self.language.get("generate_excel")
+        )
+        self.btn_exit.configure(
+            text=self.language.get("exit")
+        )
 
         self.create_menu()
-    
+
     def show_about(self):
         messagebox.showinfo(
             self.language.get("about"),
             "Question Assignment Tool\n\n"
-            "Version 1.0\n\n"
+            "Version 2.0\n\n"
             "Developed by\n"
             "Ing. Lucio M. Buitrón Pareja"
         )
