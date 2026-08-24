@@ -17,11 +17,11 @@ VSVersionInfo(
         [
           StringStruct('CompanyName', 'Lucio M. Buitrón Pareja'),
           StringStruct('FileDescription', 'Question Assignment Tool'),
-          StringStruct('FileVersion', '1.0.0'),
+          StringStruct('FileVersion', '2.1.0'),
           StringStruct('InternalName', 'Question Assignment Tool'),
           StringStruct('OriginalFilename', 'Question Assignment Tool.exe'),
           StringStruct('ProductName', 'Question Assignment Tool (QAT)'),
-          StringStruct('ProductVersion', '1.0.0'),
+          StringStruct('ProductVersion', '2.1.0'),
           StringStruct('LegalCopyright', '© 2026 Ing. Lucio M. Buitrón Pareja. All rights reserved.')
         ]
       )

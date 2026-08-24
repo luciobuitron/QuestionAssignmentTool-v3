@@ -22,8 +22,8 @@ a = Analysis(
 
 def apply_pyarmor_patch():
 
-    srcpath = ['C:\\Users\\Mi PC\\Documents\\Cursor Projects\\Question Assignment Tool (QAT)']
-    obfpath = 'C:\\Users\\Mi PC\\Documents\\Cursor Projects\\Question Assignment Tool (QAT)\\.pyarmor\\pack\\dist'
+    srcpath = ['C:\\Users\\Mi PC\\Documents\\Cursor Projects\\Question Assignment Tool (QAT) v2']
+    obfpath = 'C:\\Users\\Mi PC\\Documents\\Cursor Projects\\Question Assignment Tool (QAT) v2\\.pyarmor\\pack\\dist'
     pkgname = 'pyarmor_runtime_000000'
     pkgpath = os.path.join(obfpath, pkgname)
     extpath = os.path.join(pkgname, 'pyarmor_runtime.pyd')

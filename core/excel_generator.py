@@ -39,7 +39,7 @@ class ExcelGenerator:
         workbook.properties.title = "Question Assignment Tool"
         workbook.properties.subject = "Question Assignment"
         workbook.properties.description = (
-            "Assignment file generated with Question Assignment Tool v2.0"
+            "Assignment file generated with Question Assignment Tool v2.1"
         )
         workbook.properties.keywords = (
             "Question Assignment, Education, Assessment, Excel"
@@ -168,7 +168,7 @@ class ExcelGenerator:
         worksheet.cell(
             row=grade_note_row,
             column=1
-        ).font = Font(bold=True, size=9)
+        ).font = Font(bold=True, size=8)
 
         worksheet.cell(
             row=grade_note_row,

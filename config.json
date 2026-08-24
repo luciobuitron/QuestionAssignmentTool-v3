@@ -1,7 +1,7 @@
 {
     "application": {
         "name": "Question Assignment Tool",
-        "version": "2.0",
+        "version": "2.1",
         "author": "Ing. Lucio M. Buitron Pareja"
     },
 
@@ -9,13 +9,12 @@
         "width": 1100,
         "height": 850,
         "min_width": 1100,
-        "min_height": 880,
+        "min_height": 950,
         "resizable": true
     },
 
     "general": {
         "application_language": "en",
-        "questions_per_student": 2,
         "output_folder": "output"
     },
 
@@ -42,6 +41,18 @@
             "English",
             "Spanish",
             "Portuguese"
+        ],
+        "questions_per_student": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10"
         ],
         "application_languages": {
             "English": "en",

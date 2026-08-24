@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# PyArmor
+.pyarmor/
+
+# PyInstaller
+build/
+dist/
+
+# Generated files
+output/
+
+# Protected files
+protected/
+
+# Logs
+*.log

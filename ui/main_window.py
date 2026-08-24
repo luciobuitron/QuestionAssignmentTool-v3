@@ -63,7 +63,13 @@ class MainWindow(ctk.CTk):
 
         self.title(f'{self.language.get("title")} v{app["version"]}')
 
-        self.geometry(f'{window["width"]}x{window["height"]}')
+        screen_width = self.winfo_screenwidth()
+        x = (screen_width - window["width"]) // 2
+        y = 0
+
+        self.geometry(
+            f'{window["width"]}x{window["height"]}+{x}+{y}'
+        )
 
         self.minsize(
             window["min_width"],
@@ -108,7 +114,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_application_language = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("application_language")
+            text=self.language.get("application_language").upper()
         )
 
         self.lbl_application_language.grid(
@@ -145,7 +151,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_course = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("course")
+            text=self.language.get("course").upper()
         )
 
         self.lbl_course.grid(row=3, column=0, padx=5, sticky="w")
@@ -155,6 +161,7 @@ class MainWindow(ctk.CTk):
             values=lists["courses"]
         )
 
+        self.cmb_course.set("Operating Systems 2")
         self.cmb_course.grid(row=4, column=0, padx=5, sticky="ew")
 
         # =====================================================
@@ -163,7 +170,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_module = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("module")
+            text=self.language.get("module").upper()
         )
 
         self.lbl_module.grid(row=3, column=1, padx=5, sticky="w")
@@ -181,7 +188,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_term = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("term")
+            text=self.language.get("term").upper()
         )
 
         self.lbl_term.grid(row=3, column=2, padx=5, sticky="w")
@@ -199,7 +206,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_year = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("year")
+            text=self.language.get("year").upper()
         )
 
         self.lbl_year.grid(row=3, column=3, padx=5, sticky="w")
@@ -219,7 +226,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_course_language = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("course_language")
+            text=self.language.get("course_language").upper()
         )
 
         self.lbl_course_language.grid(row=3, column=4, padx=5, sticky="w")
@@ -229,6 +236,7 @@ class MainWindow(ctk.CTk):
             values=lists["course_languages"]
         )
 
+        self.cmb_course_language.set("Spanish")
         self.cmb_course_language.grid(row=4, column=4, padx=5, sticky="ew")
 
         # =====================================================
@@ -237,7 +245,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_students = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("student_list")
+            text=self.language.get("student_list").upper()
         )
 
         self.lbl_students.grid(
@@ -250,7 +258,7 @@ class MainWindow(ctk.CTk):
 
         self.txt_students = ctk.CTkTextbox(
             self.main_frame,
-            height=150
+            height=140
         )
 
         self.txt_students.grid(
@@ -266,7 +274,7 @@ class MainWindow(ctk.CTk):
 
         self.lbl_questions = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("question_bank")
+            text=self.language.get("question_bank").upper()
         )
 
         self.lbl_questions.grid(
@@ -290,16 +298,47 @@ class MainWindow(ctk.CTk):
         )
 
         # =====================================================
+        # Questions per Student
+        # =====================================================
+
+        self.lbl_questions_per_student = ctk.CTkLabel(
+            self.main_frame,
+            text=self.language.get("questions_per_student").upper()
+        )
+
+        self.lbl_questions_per_student.grid(
+            row=9,
+            column=0,
+            padx=5,
+            pady=(20, 5),
+            sticky="w"
+        )
+
+        self.cmb_questions_per_student = ctk.CTkComboBox(
+            self.main_frame,
+            values=lists["questions_per_student"]
+        )
+
+        self.cmb_questions_per_student.set("2")
+
+        self.cmb_questions_per_student.grid(
+            row=10,
+            column=0,
+            padx=5,
+            sticky="ew"
+        )
+
+        # =====================================================
         # Practice Questions
         # =====================================================
 
         self.lbl_practice_questions = ctk.CTkLabel(
             self.main_frame,
-            text=self.language.get("practice_questions")
+            text=self.language.get("practice_questions").upper()
         )
 
         self.lbl_practice_questions.grid(
-            row=9,
+            row=11,
             column=0,
             columnspan=5,
             sticky="w",
@@ -312,7 +351,7 @@ class MainWindow(ctk.CTk):
         )
 
         self.txt_practice_questions.grid(
-            row=10,
+            row=12,
             column=0,
             columnspan=5,
             sticky="nsew"
@@ -329,7 +368,7 @@ class MainWindow(ctk.CTk):
         )
 
         self.btn_generate.grid(
-            row=11,
+            row=13,
             column=0,
             columnspan=5,
             pady=25
@@ -347,7 +386,7 @@ class MainWindow(ctk.CTk):
         )
 
         self.btn_exit.grid(
-            row=14,
+            row=16,
             column=0,
             columnspan=5,
             pady=(0, 10)
@@ -390,7 +429,7 @@ class MainWindow(ctk.CTk):
             )
             return
 
-        questions_per_student = self.config_data["general"]["questions_per_student"]
+        questions_per_student = int(self.cmb_questions_per_student.get())
 
         required_questions = len(students) * questions_per_student
 
@@ -491,16 +530,57 @@ class MainWindow(ctk.CTk):
         messagebox.showinfo(
             self.language.get("about"),
             "Question Assignment Tool\n\n"
-            "Version 2.0\n\n"
+            "Version 2.1\n\n"
             "Developed by\n"
             "Ing. Lucio M. Buitrón Pareja"
         )
     
     def show_instructions(self):
 
-        messagebox.showinfo(
-            self.language.get("instructions_title"),
-            f"{self.language.get('instruction_1')}\n\n"
-            f"{self.language.get('instruction_2')}\n\n"
-            f"{self.language.get('instruction_3')}"
-    )
+        window = ctk.CTkToplevel(self)
+        window.transient(self)
+        window.grab_set()
+        window.title(self.language.get("instructions_title"))
+
+        window.geometry("570x300")
+        window.update_idletasks()
+        window_width = 570
+        screen_width = self.winfo_screenwidth()
+        x = (screen_width - window_width) // 2
+        y = window.winfo_y()
+        window.geometry(f"{window_width}x300+{x}+{y}")
+
+        window.resizable(False, False)
+
+        instructions = "\n\n".join([
+            self.language.get("instruction_1"),
+            self.language.get("instruction_2"),
+            self.language.get("instruction_3"),
+            self.language.get("instruction_4"),
+            self.language.get("instruction_5"),
+            self.language.get("instruction_6")
+        ])
+
+        label = ctk.CTkLabel(
+            window,
+            text=instructions,
+            justify="left",
+            anchor="w"
+        )
+
+        label.pack(
+            fill="both",
+            expand=True,
+            padx=30,
+            pady=(30, 10)
+        )
+
+        btn_close = ctk.CTkButton(
+            window,
+            text=self.language.get("exit"),
+            command=window.destroy
+        )
+
+        btn_close.pack(
+            pady=(0, 20)
+        )

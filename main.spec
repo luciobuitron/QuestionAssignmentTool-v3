@@ -1,22 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+
 a = Analysis(
-    ['main.py'],
+    ['.pyarmor\\pack\\dist\\main.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        ('config.json', '.'),
-        ('languages', 'languages'),
-    ],
+    datas=[],
     hiddenimports=[],
-    hookspath=[],
+    hookspath=['.pyarmor\\pack'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
     optimize=0,
 )
-
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -25,19 +22,17 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Question Assignment Tool',
+    name='main',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='resources\\QAT.ico',
-    version='version_info.txt',
 )
