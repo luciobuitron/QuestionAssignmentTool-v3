@@ -1,5 +1,4 @@
 # Software Design Document (SDD)
-
 # Question Assignment Tool (QAT)
 
 **Version:** 3.0  
