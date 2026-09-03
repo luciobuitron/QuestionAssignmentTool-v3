@@ -2,12 +2,14 @@ import json
 import os
 import customtkinter as ctk
 import tkinter as tk
+import traceback
 
 from core.language_manager import LanguageManager
 from core.excel_generator import ExcelGenerator
 from core.assignment_manager import AssignmentManager
 from tkinter import messagebox
 from core.path_utils import resource_path
+from core.logger import log
 
 
 class MainWindow(ctk.CTk):
@@ -329,6 +331,69 @@ class MainWindow(ctk.CTk):
         )
 
         # =====================================================
+        # Total Score
+        # =====================================================
+
+        self.lbl_total_score = ctk.CTkLabel(
+            self.main_frame,
+            text=self.language.get("total_score").upper()
+        )
+
+        self.lbl_total_score.grid(
+            row=9,
+            column=1,
+            padx=5,
+            pady=(20, 5),
+            sticky="w"
+        )
+
+        self.txt_total_score = ctk.CTkEntry(
+            self.main_frame
+        )
+
+        self.txt_total_score.insert(0, "500")
+
+        self.txt_total_score.grid(
+            row=10,
+            column=1,
+            padx=5,
+            sticky="ew"
+        )
+
+        # =====================================================
+        # Defense / Theory Distribution
+        # =====================================================
+
+        self.lbl_defense_theory_distribution = ctk.CTkLabel(
+            self.main_frame,
+            text=self.language.get(
+                "defense_theory_distribution"
+            ).upper()
+        )
+
+        self.lbl_defense_theory_distribution.grid(
+            row=9,
+            column=2,
+            padx=5,
+            pady=(20, 5),
+            sticky="w"
+        )
+
+        self.cmb_defense_theory_distribution = ctk.CTkComboBox(
+            self.main_frame,
+            values=lists["defense_theory_distribution"]
+        )
+
+        self.cmb_defense_theory_distribution.set("70 / 30")
+
+        self.cmb_defense_theory_distribution.grid(
+            row=10,
+            column=2,
+            padx=5,
+            sticky="ew"
+        )
+
+        # =====================================================
         # Practice Questions
         # =====================================================
 
@@ -397,17 +462,68 @@ class MainWindow(ctk.CTk):
     # =====================================================
     def generate_excel(self):
 
-        students = [
-            student.strip()
-            for student in self.txt_students.get("1.0", "end").splitlines()
-            if student.strip()
-        ]
+        student_lines = self.txt_students.get("1.0", "end").splitlines()
+
+        students = []
+        student_groups = {}
+
+        group_number = 1
+
+        for line in student_lines:
+
+            student = line.strip()
+
+            if not student:
+                if students:
+                    group_number += 1
+                continue
+
+            students.append(student)
+            student_groups[student] = f"Group {group_number}"
 
         questions = [
             question.strip()
             for question in self.txt_questions.get("1.0", "end").splitlines()
             if question.strip()
         ]
+
+        # Classifying the questions if they have tag or not
+        tagged_questions = []
+        untagged_questions = []
+        invalid_tag_questions = []
+
+        for question in questions:
+
+            if question.startswith("[") and "]" in question:
+                tag_end = question.find("]")
+
+                if tag_end > 1 and question[1:tag_end].strip() and question[tag_end + 1:].strip():
+                    tagged_questions.append(question)
+                else:
+                    invalid_tag_questions.append(question)
+
+            else:
+                untagged_questions.append(question)
+
+        if invalid_tag_questions:
+            log("VALIDATION", self.language.get("invalid_tags"))
+            
+            messagebox.showwarning(
+                self.language.get("warning_title"),
+                self.language.get("invalid_tags")
+            )
+
+            return
+
+        if tagged_questions and untagged_questions:
+            log("VALIDATION", self.language.get("mixed_tags"))
+
+            messagebox.showwarning(
+                self.language.get("warning_title"),
+                self.language.get("mixed_tags")
+            )
+
+            return
 
         practice_questions = [
             question.strip()
@@ -416,6 +532,8 @@ class MainWindow(ctk.CTk):
         ]
 
         if not students:
+            log("VALIDATION", self.language.get("no_students_found"))
+
             messagebox.showwarning(
                 self.language.get("warning_title"),
                 self.language.get("no_students_found")
@@ -423,6 +541,8 @@ class MainWindow(ctk.CTk):
             return
 
         if not questions:
+            log("VALIDATION", self.language.get("no_questions_found"))
+
             messagebox.showwarning(
                 self.language.get("warning_title"),
                 self.language.get("no_questions_found")
@@ -431,18 +551,50 @@ class MainWindow(ctk.CTk):
 
         questions_per_student = int(self.cmb_questions_per_student.get())
 
+        total_score = float(
+            self.txt_total_score.get()
+        )
+
+        defense_theory_distribution = (
+            self.cmb_defense_theory_distribution.get()
+        )
+
+        defense_percentage, theory_percentage = map(
+            float,
+            defense_theory_distribution.split("/")
+        )
+
+        defense_max = total_score * defense_percentage / 100
+        theory_max = total_score * theory_percentage / 100
+
         required_questions = len(students) * questions_per_student
 
         if len(questions) < required_questions:
+
+            available = len(questions)
+            required = required_questions
+            missing = required - available
+
+            message = self.language.get(
+                "not_enough_questions"
+            ).format(
+                available=available,
+                required=required,
+                missing=missing
+            )
+
+            log("VALIDATION", message)
+
             messagebox.showwarning(
                 self.language.get("warning_title"),
-                self.language.get("not_enough_questions")
+                message
             )
+
             return
 
         assignment_manager = AssignmentManager()
 
-        assignments = assignment_manager.assign_questions(
+        assignments, all_tags_different = assignment_manager.assign_questions(
             students=students,
             questions=questions,
             questions_per_student=questions_per_student
@@ -450,35 +602,56 @@ class MainWindow(ctk.CTk):
 
         excel_generator = ExcelGenerator(self.language)
 
-        filepath = excel_generator.generate(
-            students=students,
-            assignments=assignments,
-            practice_questions=practice_questions,
-            questions_per_student=questions_per_student,
-            course=self.cmb_course.get(),
-            module=self.cmb_module.get(),
-            term=self.cmb_term.get(),
-            course_language=self.cmb_course_language.get()
-        )
+        try:
+            filepath = excel_generator.generate(
+                students=students,
+                student_groups=student_groups,
+                assignments=assignments,
+                practice_questions=practice_questions,
+                questions_per_student=questions_per_student,
+                theory_max=theory_max,
+                defense_max=defense_max,
+                course=self.cmb_course.get(),
+                module=self.cmb_module.get(),
+                term=self.cmb_term.get(),
+                course_language=self.cmb_course_language.get(),
+                total_score=total_score,
+                defense_percentage=defense_percentage,
+                theory_percentage=theory_percentage
+            )
 
-        students_count = len(students)
-        questions_used = students_count * questions_per_student
+            students_count = len(students)
+            questions_used = students_count * questions_per_student
+            questions_available = len(questions)
 
-        messagebox.showinfo(
-            self.language.get("success_title"),
-            f"{self.language.get('success_message')}\n\n"
-            f"{self.language.get('file')}:\n"
-            f"{os.path.basename(filepath)}\n\n"
-            f"{self.language.get('location')}:\n"
-            f"{filepath}\n\n"
-            f"{self.language.get('summary')}\n"
-            f"────────────────────\n"
-            f"{self.language.get('students')}: {students_count}\n"
-            f"{self.language.get('questions_used')}: {questions_used}\n"
-            f"{self.language.get('questions_per_student')}: {questions_per_student}"
-        )
+            messagebox.showinfo(
+                self.language.get("success_title"),
+                f"{self.language.get('success_message')}\n\n"
+                f"{self.language.get('file')}:\n"
+                f"{os.path.basename(filepath)}\n\n"
+                f"{self.language.get('location')}:\n"
+                f"{filepath}\n\n"
+                f"{self.language.get('summary').upper()}\n"
+                f"-------------\n"
+                f"{self.language.get('students')}: {students_count}\n"
+                f"{self.language.get('questions_available')}: {questions_available}\n"
+                f"{self.language.get('questions_used')}: {questions_used}\n"
+                f"{self.language.get('questions_per_student')}: {questions_per_student}\n\n"
+                f"{self.language.get('tag_distribution')}: "
+                f"{self.language.get('tag_distribution_all') if all_tags_different else self.language.get('tag_distribution_some')}"
+            )
 
-        print("Excel generated.")
+            log("SUCCESS", f"Excel generated successfully: {os.path.basename(filepath)}")
+            print("Excel generated.")
+
+        except Exception as error:
+            log("ERROR", f"{type(error).__name__}: {error}")
+            log("ERROR", traceback.format_exc())
+
+            messagebox.showerror(
+                self.language.get("error_title"),
+                self.language.get("error_message")
+            )
 
     # =====================================================
     # Update Language
@@ -497,25 +670,34 @@ class MainWindow(ctk.CTk):
             f'{self.language.get("title")} v{self.config_data["application"]["version"]}'
         )
 
-        self.lbl_title.configure(text=self.language.get("title"))
+        self.lbl_title.configure(text=self.language.get("title").upper())
         self.lbl_application_language.configure(
-            text=self.language.get("application_language")
+            text=self.language.get("application_language").upper()
         )
-        self.lbl_course.configure(text=self.language.get("course"))
-        self.lbl_module.configure(text=self.language.get("module"))
-        self.lbl_term.configure(text=self.language.get("term"))
-        self.lbl_year.configure(text=self.language.get("year"))
+        self.lbl_course.configure(text=self.language.get("course").upper())
+        self.lbl_module.configure(text=self.language.get("module").upper())
+        self.lbl_term.configure(text=self.language.get("term").upper())
+        self.lbl_year.configure(text=self.language.get("year").upper())
         self.lbl_course_language.configure(
-            text=self.language.get("course_language")
+            text=self.language.get("course_language").upper()
         )
         self.lbl_students.configure(
-            text=self.language.get("student_list")
+            text=self.language.get("student_list").upper()
         )
         self.lbl_questions.configure(
-            text=self.language.get("question_bank")
+            text=self.language.get("question_bank").upper()
         )
         self.lbl_practice_questions.configure(
-            text=self.language.get("practice_questions")
+            text=self.language.get("practice_questions").upper()
+        )
+        self.lbl_questions_per_student.configure(
+            text=self.language.get("questions_per_student").upper()
+        )
+        self.lbl_total_score.configure(
+            text=self.language.get("total_score").upper()
+        )
+        self.lbl_defense_theory_distribution.configure(
+            text=self.language.get("defense_theory_distribution").upper()
         )
         self.btn_generate.configure(
             text=self.language.get("generate_excel")
@@ -530,7 +712,7 @@ class MainWindow(ctk.CTk):
         messagebox.showinfo(
             self.language.get("about"),
             "Question Assignment Tool\n\n"
-            "Version 2.1\n\n"
+            "Version 3.0\n\n"
             "Developed by\n"
             "Ing. Lucio M. Buitrón Pareja"
         )
@@ -542,9 +724,9 @@ class MainWindow(ctk.CTk):
         window.grab_set()
         window.title(self.language.get("instructions_title"))
 
-        window.geometry("570x300")
+        window.geometry("750x300")
         window.update_idletasks()
-        window_width = 570
+        window_width = 750
         screen_width = self.winfo_screenwidth()
         x = (screen_width - window_width) // 2
         y = window.winfo_y()
@@ -558,7 +740,8 @@ class MainWindow(ctk.CTk):
             self.language.get("instruction_3"),
             self.language.get("instruction_4"),
             self.language.get("instruction_5"),
-            self.language.get("instruction_6")
+            self.language.get("instruction_6"),
+            self.language.get("instruction_7")
         ])
 
         label = ctk.CTkLabel(
@@ -584,3 +767,7 @@ class MainWindow(ctk.CTk):
         btn_close.pack(
             pady=(0, 20)
         )
+
+# === QAT V3 STABLE CHECKPOINT ===
+# Protection + Data Validation in all cells and tabs tested and working.
+# Do not modify this configuration without a backup/commit.

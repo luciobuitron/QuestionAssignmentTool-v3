@@ -11,6 +11,7 @@ dist/
 
 # Generated files
 output/
+*.xlsx
 
 # Protected files
 protected/
